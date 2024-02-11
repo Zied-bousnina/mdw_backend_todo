@@ -31,7 +31,8 @@ class CreateTaskRequest extends FormRequest
             'title' => 'required',
             'description' => 'required',
             'due_date' => 'required',
-            'remind_at' => 'required'
+            'remind_at' => 'required',
+            'status' => 'in:en attente,open,in progress,Accepted,solved,on hold', // Add this line for the status field
         ];
     }
 
@@ -46,7 +47,8 @@ class CreateTaskRequest extends FormRequest
             'title.required' => 'A title is required',
             'description.required' => 'A description is required',
             'due_date.required' => 'A due date is required',
-            'remind_at.required' => 'A reminder date is required'
+            'remind_at.required' => 'A reminder date is required',
+            'status.in' => 'Invalid status value. Supported values are: en attente, open, in progress, Accepted, solved, on hold',
         ];
     }
 

@@ -13,18 +13,8 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('tasks', function (Blueprint $table) {
-            $table->id();
-            $table->string('title');
-            $table->longText('description')->nullable();
+        Schema::table('tasks', function (Blueprint $table) {
             $table->enum('status', ['en attente', 'open', 'in progress', 'Accepted', 'solved', 'on hold'])->default('en attente');
-
-
-        $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-            $table->timestamp('completed_at')->nullable();
-            $table->timestamp('due_date')->nullable();
-            $table->timestamp('remind_at')->nullable();
-            $table->timestamps();
         });
     }
 
@@ -35,6 +25,8 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('tasks');
+        Schema::table('tasks', function (Blueprint $table) {
+            $table->dropColumn('status');
+        });
     }
 };

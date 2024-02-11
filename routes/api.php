@@ -27,4 +27,9 @@ Route::middleware('auth:sanctum')->group(function() {
     Route::get('/user', function (Request $request) {
         return $request->user();
     }) ;
+Route::post('/user/logout', [UserController::class, 'logout']);
+    Route::get('/read', [TaskController::class, 'read']);
+    Route::delete('/delete/{id}', [TaskController::class, 'delete']);
+    Route::patch('/update/{id}', [TaskController::class, 'update']);
+    Route::get('/readWithSortBy', [TaskController::class, 'readWithSortBy']);
 });

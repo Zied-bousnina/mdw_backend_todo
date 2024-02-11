@@ -3,7 +3,8 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-
+use Illuminate\Contracts\Validation\Validator as ValidationValidator;
+use Illuminate\Http\Exceptions\HttpResponseException;
 class LoginUserRequest extends FormRequest
 {
     /**
@@ -102,6 +103,13 @@ class LoginUserRequest extends FormRequest
             //
         ];
     }
-
+    public function failedValidation(ValidationValidator $validator)
+    {
+        throw new HttpResponseException(response()->json([
+            'success' => false,
+            'message' => 'Validation error occurred',
+            'errors' => $validator->errors()->toArray(),
+        ]));
+    }
 
 }
