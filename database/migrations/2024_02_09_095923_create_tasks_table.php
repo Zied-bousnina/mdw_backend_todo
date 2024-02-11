@@ -20,7 +20,7 @@ return new class extends Migration
             $table->enum('status', ['en attente', 'open', 'in progress', 'Accepted', 'solved', 'on hold'])->default('en attente');
 
 
-        $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->timestamp('completed_at')->nullable();
             $table->timestamp('due_date')->nullable();
             $table->timestamp('remind_at')->nullable();
