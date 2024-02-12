@@ -29,25 +29,25 @@ class SendTaskReminders extends Command
      * @return int
      */
     public function handle()
-    {
-        $tasks = Task::where('due_date', '<=', now()->addDays(1))->get();
+{
+    $tasks = Task::whereBetween('due_date', [now(), now()->addSeconds(1)])->get();
 
-        foreach ($tasks as $task) {
-            // Customize the email content based on your needs
-            $title = 'Task Reminder';
-            $body = "Don't forget to complete the task: {$task->title}";
+    foreach ($tasks as $task) {
+        $title = 'Task Reminder';
+        $body = "Don't forget to complete the task: {$task->title}";
 
-            // Send email
-            $user = User::find($task->user_id);
-            if ($user) {
-                Mail::to($user->email)->send(new \App\Mail\TaskReminderMail(
-                    $title,
-                    $body,
-                    $task
-                ));
-            }
+        $user = User::find($task->user_id);
+
+        if ($user) {
+            Mail::to($user->email)->send(new \App\Mail\TaskReminderMail(
+                $title,
+                $body,
+                $task
+            ));
         }
-
-        $this->info('Task reminders sent successfully!');
     }
+
+    $this->info('Task reminders sent successfully!');
+}
+
 }
