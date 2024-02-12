@@ -143,40 +143,28 @@ class TaskController extends Controller
 
 
 
-    public function readWithSortBy(Request $request)
+
+
+    public function getTaskStatistics(
+        Request $request
+    )
     {
-        try {
-            $user = $request->user(); // Get the currently authenticated user
-            $name = $request->input('name');
-            $sortBy = $request->input('sort_by', 'created_at');
-            $sortOrder = $request->input('sort_order', 'desc');
+        $user_id =auth()->user()->id; // Get the ID of the authenticated user
 
-            $cacheKey = 'sorted_tasks_' . md5(serialize([$user->id, $name, $sortBy, $sortOrder]));
+        $statistics = [
+            'en_attente' => Task::where('user_id', $user_id)->where('status', 'en attente')->count(),
+            'open' => Task::where('user_id', $user_id)->where('status', 'open')->count(),
+            'in_progress' => Task::where('user_id', $user_id)->where('status', 'in progress')->count(),
+            'accepted' => Task::where('user_id', $user_id)->where('status', 'Accepted')->count(),
+            'solved' => Task::where('user_id', $user_id)->where('status', 'solved')->count(),
+            'on_hold' => Task::where('user_id', $user_id)->where('status', 'on hold')->count(),
+            'overdue' => Task::where('user_id', $user_id)->where('due_date', '<', now())->count(),
+            'to_do' => Task::where('user_id', $user_id)->where('status', 'en attente')->count(),
+            'open_tasks' => Task::where('user_id', $user_id)->where('status', 'open')->count(),
+            'due_today' => Task::where('user_id', $user_id)->whereDate('due_date', now())->count(),
+        ];
 
-            $tasks = Cache::remember($cacheKey, now()->addMinutes(30), function () use ($user, $name, $sortBy, $sortOrder) {
-                $tasksQuery = Task::where('user_id', $user->id);
-
-                if ($name) {
-                    $tasksQuery->where('title', 'like', '%' . $name . '%');
-                }
-
-                $tasksQuery->orderBy($sortBy, $sortOrder);
-
-                return $tasksQuery->get();
-            });
-
-            Log::info('Tasks Read with sorting successfully', ['user_id' => $user->id]);
-            return response()->json([
-                'tasks' => $tasks
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Error reading tasks with sorting', ['user_id' => $user->id, 'error_message' => $e->getMessage()]);
-            return response()->json([
-                'success' => false,
-                'message' => 'Error fetching tasks with sorting',
-                'error' => $e->getMessage(),
-            ]);
-        }
+        return response()->json(['statistics' => $statistics]);
     }
 
 

@@ -32,4 +32,5 @@ Route::post('/user/logout', [UserController::class, 'logout']);
     Route::delete('/delete/{id}', [TaskController::class, 'delete']);
     Route::patch('/update/{id}', [TaskController::class, 'update']);
     Route::get('/readWithSortBy', [TaskController::class, 'readWithSortBy']);
+    Route::get('/getStatistiqueByUser', [TaskController::class, 'getTaskStatistics']);
 });
