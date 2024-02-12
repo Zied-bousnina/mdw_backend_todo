@@ -5,13 +5,16 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginUserRequest;
 use App\Http\Requests\RegisterUser;
+use App\Mail\SendCodeResetPassword;
+use App\Models\ResetCodePassword;
+use App\Models\ResetCodePassword2;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Sanctum\PersonalAccessTokenFactory;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
-
+use Illuminate\Support\Facades\Mail;
 class UserController extends Controller
 {
 
@@ -118,6 +121,93 @@ class UserController extends Controller
             ]);
         }
     }
+
+    public function checkCode(Request $request)
+    {
+        try {
+            // find the code
+            $passwordReset = ResetCodePassword2::firstWhere('code', $request->code);
+
+            // check if the code exists
+            if (!$passwordReset) {
+                return response(['message' => trans('passwords.code_not_found')], 404);
+            }
+
+            // check if it does not expire: the time is one hour
+            if ($passwordReset->created_at > now()->addHour()) {
+                $passwordReset->delete();
+                return response(['message' => trans('passwords.code_is_expire')], 422);
+            }
+
+            return response([
+                'code' => $passwordReset->code,
+                'message' => trans('passwords.code_is_valid')
+            ], 200);
+        } catch (\Exception $e) {
+            return response(['message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function reset(Request $request)
+    {
+        try {
+            // find the code
+            $passwordReset = ResetCodePassword2::firstWhere('code', $request->code);
+
+            // check if the code exists
+            if (!$passwordReset) {
+                return response(['message' => trans('passwords.code_not_found')], 404);
+            }
+
+            // check if it does not expire: the time is one hour
+            if ($passwordReset->created_at > now()->addHour()) {
+                $passwordReset->delete();
+                return response(['message' => trans('passwords.code_is_expire')], 422);
+            }
+
+            // find user's email
+            $user = User::firstWhere('email', $passwordReset->email);
+
+            // update user password
+            $user->update(['password' => bcrypt($request->password)]);
+
+
+            // delete current code
+            $passwordReset->delete();
+
+            return response(['message' => 'password has been successfully reset'], 200);
+        } catch (\Exception $e) {
+            return response(['message' => $e->getMessage()], 500);
+        }
+    }
+
+
+public function sendResetLinkEmail(Request $request)
+{
+    try {
+        $data = $request->validate([
+            'email' => 'required|email|exists:users',
+        ]);
+
+        // Delete all old code that user sent before.
+        ResetCodePassword2::where('email', $request->email)->delete();
+
+        // Generate random code
+        $data['code'] = mt_rand(100000, 999999);
+
+        // Create a new code
+        $codeData = ResetCodePassword2::create($data);
+
+        // Send email to user
+        Mail::to($request->email)->send(new SendCodeResetPassword($codeData->code));
+
+        return response(['message' => trans('passwords.sent')], 200);
+    } catch (\Exception $e) {
+        return response(['message' => $e->getMessage()], 500);
+    }
+}
+
+
 
 
 

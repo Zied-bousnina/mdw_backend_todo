@@ -1,7 +1,9 @@
 <?php
 
+
 use App\Http\Controllers\Api\TaskController;
 use App\Http\Controllers\Api\UserController;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -21,6 +23,10 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('user/create', [UserController::class, 'register']);
 Route::post('user/login', [UserController::class, 'login']);
+Route::post('password/email', [ UserController::class, 'sendResetLinkEmail']);
+Route::post('password/code/check', [UserController::class, 'checkCode']);
+Route::post('password/reset', [UserController::class, 'reset']);
+
 
 Route::middleware('auth:sanctum')->group(function() {
     Route::post('/task', [TaskController::class, 'store']);
