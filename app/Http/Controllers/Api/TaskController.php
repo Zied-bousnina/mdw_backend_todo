@@ -112,6 +112,15 @@ class TaskController extends Controller
 
 
             $task->save();
+            try {
+                Mail::to($request->user()->email)->send(new updateTaskMail(
+                    $request->user(),
+                    $task
+                ));
+            } catch (\Throwable $th) {
+                Log::error('Error sending email', ['user_id' => auth()->user()->id, 'error_message' => $th->getMessage()]);
+            }
+
 
             Log::info('Task updated successfully', ['user_id' => auth()->user()->id, 'task_id' => $task->id]);
 
