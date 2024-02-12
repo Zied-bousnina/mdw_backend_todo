@@ -86,11 +86,9 @@ class TaskController extends Controller
             ]);
         }
     }
-
     public function update(Request $request, $id)
     {
         try {
-
             $task = Cache::remember('task_' . $id, now()->addMinutes(30), function () use ($id) {
                 return Task::find($id);
             });
@@ -100,9 +98,25 @@ class TaskController extends Controller
                     'message' => 'Task not found'
                 ], 404);
             }
+
+            // Update task properties if they exist in the request
+            $task->title = $request->input('title', $task->title);
+            $task->description = $request->input('description', $task->description);
+            $task->status = $request->input('status', $task->status);
+            $task->user_id = $request->input('user_id', $task->user_id);
+            $task->completed_at = $request->input('completed_at', $task->completed_at);
+            $dueDate = $request->input('due_date');
+            if ($dueDate) {
+                $task->due_date = Carbon::parse($dueDate)->format('Y-m-d H:i:s');
+            }
+
+
             $task->save();
+
             Log::info('Task updated successfully', ['user_id' => auth()->user()->id, 'task_id' => $task->id]);
+
             Cache::forget('task_' . $id);
+
             return response()->json([
                 'task' => $task,
                 'message' => 'Task updated successfully',
