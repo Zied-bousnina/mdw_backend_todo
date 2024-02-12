@@ -145,9 +145,7 @@ class TaskController extends Controller
 
 
 
-    public function getTaskStatistics(
-        Request $request
-    )
+    public function getTaskStatistics( Request $request )
     {
         $user_id =auth()->user()->id; // Get the ID of the authenticated user
 
@@ -168,7 +166,16 @@ class TaskController extends Controller
     }
 
 
+    public function readWithSortBy(Request $request)
+    {
+        $user_id = auth()->id(); // Get the ID of the authenticated user
+        $sortBy = $request->input('sort_by', 'title'); // Default to sorting by name if not specified
+        $sortOrder = $request->input('sort_order', 'asc'); // Default to ascending order if not specified
 
+        $tasks = Task::where('user_id', $user_id)->orderBy($sortBy, $sortOrder)->get();
+
+        return response()->json(['tasks' => $tasks]);
+    }
 
 
 
